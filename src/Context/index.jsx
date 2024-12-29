@@ -1,38 +1,66 @@
 import { createContext, useState, useEffect } from 'react'
 
 export const ShoppingCartContext = createContext()
+  
+// Inicializa el almacenamiento local con valores predeterminados si estos no existen 
+export const initializeLocalStorage=()=>{
+  const accountInLocalStorage=localStorage.getItem('account')
+  const signOutInLocalStorage=localStorage.getItem('sig-out')
+  
+  if(!accountInLocalStorage){
+    localStorage.setItem('account', JSON.stringify({}))
+   } 
+  
+  if(!signOutInLocalStorage){
+    localStorage.setItem('sign-out', JSON.stringify(false))
+  }
+}
 
+// Proveedor de contexto de carrito de compras 
 export const ShoppingCartProvider = ({children}) => {
-  // Shopping Cart · Increment quantity
+  
+  //Mi estado de cuenta.
+  const [account, setAccount]=useState(()=>{
+    const accountInLocalStorage = localStorage.getItem('account')
+    return accountInLocalStorage ? JSON.parse(accountInLocalStorage) : {} 
+  })
+
+  //Estado de cierre de sección 
+  const [signOut, setSignOut]=useState(() => {
+    const signOutInLocalStorage = localStorage.getItem('sign-out')
+    return signOutInLocalStorage ? JSON.parse(signOutInLocalStorage) : false
+  })
+  
+  // Carrito de Compras, Incrementar cantidad
   const [count, setCount] = useState(0)
 
-  // Product Detail · Open/Close
+  // Detalle del Producto · Abrir/Cerrar
   const [isProductDetailOpen, setIsProductDetailOpen] = useState(false)
   const openProductDetail = () => setIsProductDetailOpen(true)
   const closeProductDetail = () => setIsProductDetailOpen(false)
 
-  // Checkout Side Menu · Open/Close
+  // Menú Lateral de Pago · Abrir/Cerrar
   const [isCheckoutSideMenuOpen, setIsCheckoutSideMenuOpen] = useState(false)
   const openCheckoutSideMenu = () => setIsCheckoutSideMenuOpen(true)
   const closeCheckoutSideMenu = () => setIsCheckoutSideMenuOpen(false)
 
-  // Product Detail · Show product
+  // Detalle del producto, Mostrar producto
   const [productToShow, setProductToShow] = useState({})
 
-  // Shopping Cart · Add products to cart
+  // Carrito de compras, Agregar productos al carrito
   const [cartProducts, setCartProducts] = useState([])
 
-  // Shopping Cart · Order
+  // Carrito de compras pedido.
   const [order, setOrder] = useState([])
 
-  // Get products
+  // Obtener productos
   const [items, setItems] = useState(null)
   const [filteredItems, setFilteredItems] = useState(null)
 
-  // Get products by title
+  // Obtener productos por titulo
   const [searchByTitle, setSearchByTitle] = useState(null)
 
-  // Get products by category
+  // Obtener productos por categoria
   const [searchByCategory, setSearchByCategory] = useState(null)
 
   useEffect(() => {
@@ -61,10 +89,8 @@ export const ShoppingCartProvider = ({children}) => {
     if (searchType === 'BY_TITLE_AND_CATEGORY') {
       return filteredItemsByCategory(items, searchByCategory).filter(item => item.title.toLowerCase().includes(searchByTitle.toLowerCase()))
     }
-
-    if (!searchType) {
-      return items
-    }
+    
+    return items
   }
 
   useEffect(() => {
@@ -74,6 +100,9 @@ export const ShoppingCartProvider = ({children}) => {
     if (!searchByTitle && !searchByCategory) setFilteredItems(filterBy(null, items, searchByTitle, searchByCategory))
   }, [items, searchByTitle, searchByCategory])
 
+  
+
+  
   return (
     <ShoppingCartContext.Provider value={{
       count,
@@ -96,7 +125,11 @@ export const ShoppingCartProvider = ({children}) => {
       setSearchByTitle,
       filteredItems,
       searchByCategory,
-      setSearchByCategory
+      setSearchByCategory,
+      account,
+      setAccount,
+      signOut,
+      setSignOut
     }}>
       {children}
     </ShoppingCartContext.Provider>
